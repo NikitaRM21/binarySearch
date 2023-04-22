@@ -145,7 +145,7 @@ template<class T> void createHeap(vector<T>& a, long k, long n){
 \return Ничего не возвращает
 */
 template<class T>
-void heapSort(vector<T>& a,long size) {
+void heapSort(vector<T> &a,long size) {
     //идем по элементам у которых есть потомки и собираем первичкую кучу
     for (long i = size/2-1; i>=0; --i) {
         createHeap(a,i,size-1);
@@ -155,16 +155,22 @@ void heapSort(vector<T>& a,long size) {
         createHeap(a,0,j-2);
     }
 }
-
-int binarySearch(vector<Entry> a, int start, int end, string key)
+/*!
+Алгоритм бинарного поиска
+\param[a] a Массив данных
+\param[start] start Стартовая позиция
+\param[end] end Конечная позиция
+\param[b] b ключ
+\return Если нашась возвращает номер записи, иначе -1.
+*/
+int binarySearch(vector<Entry> &a, int start, int end, string &key)
 {
-    // Termination condition: start index greater than end index
+    // Условие завершения: начальный индекс больше конечного индекса
     if (start > end) {
         return -1;
     }
 
-    // Find the middle element of the vector and use that for splitting
-    // the array into two pieces.
+    // Находит средний элемент вектора и использует его для разделения массива на две части.
     const int middle = start + ((end - start) / 2);
 
     if(a[middle].fio == key) {
@@ -185,7 +191,7 @@ int binarySearch(vector<Entry> a, int start, int end, string key)
 \param[b] b ключ
 \return Если нашась возвращает номер записи, иначе -1.
 */
-int linearSearch(vector<Entry> a, long start, long size, string b) {
+int linearSearch(vector<Entry> &a, long start, long size, string &b) {
   for (int i = start; i <=size; i++) {
     if (a[i].fio == b)
       return i;
@@ -203,6 +209,7 @@ void handleFile(string fileName, int searchAlgo, string key) {
     string openPath = fileName;
     ifstream file(openPath);
 
+    multimap<string, Entry> myMultimap;
     vector<Entry> data;
     string line, field;
 
@@ -238,6 +245,7 @@ void handleFile(string fileName, int searchAlgo, string key) {
         }
         Entry entry(fio,street,home,flat,birth);
         data.push_back(entry);
+        myMultimap.insert(pair<string, Entry>(fio, entry));
     }
 
     //1-линейные поиск, 2-бинарный в отсортированном, 3-сортировка и бинарный поиск
@@ -249,8 +257,8 @@ void handleFile(string fileName, int searchAlgo, string key) {
                 i = linearSearch (data, i+1, data.size()-1 , key);
             }
             auto end = chrono::steady_clock::now();
-            auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(end - begin);
-            cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " ms\n";
+            auto elapsed_ms = chrono::duration_cast<chrono::microseconds>(end - begin);
+            cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " mk\n";
     } else if (searchAlgo==2) {
         auto begin = std::chrono::steady_clock::now();
         long i = binarySearch(data, 0, data.size()-1, key);
@@ -264,8 +272,8 @@ void handleFile(string fileName, int searchAlgo, string key) {
             }
         }
         auto end = chrono::steady_clock::now();
-        auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(end - begin);
-        cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " ms\n";
+        auto elapsed_ms = chrono::duration_cast<chrono::microseconds>(end - begin);
+        cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " mk\n";
     } else if (searchAlgo==3) {
         auto begin = std::chrono::steady_clock::now();
         heapSort(data, data.size());
@@ -280,37 +288,58 @@ void handleFile(string fileName, int searchAlgo, string key) {
             }
         }
         auto end = chrono::steady_clock::now();
-        auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(end - begin);
-        cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " ms\n";
+        auto elapsed_ms = chrono::duration_cast<chrono::microseconds>(end - begin);
+        cout << "File:" << fileName << " Alg:" << searchAlgo << " Time:" << elapsed_ms.count() << " mk\n";
+    } else if (searchAlgo==4) {
+        pair <multimap<string, Entry>::const_iterator, multimap<string, Entry>::const_iterator> p1;
+        auto begin = std::chrono::steady_clock::now();
+        p1 = myMultimap.equal_range( key );
+        auto end = chrono::steady_clock::now();
+        auto elapsed_ms = chrono::duration_cast<chrono::microseconds>(end - begin);
+        int quantity = 0;
+        while (p1.first!=p1.second) {
+          quantity++;
+          p1.first++;
+        }
+        std::cout << "Found: " << quantity << " elements" << " Time:" << elapsed_ms.count() << " mk\n";
     }
 }
 
 int main() {
-    //1-линейные поиск, 2-бинарный в отсортированном, 3-сортировка и бинарный поиск
-    handleFile("tests/test200.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test500.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test1000.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test8000.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test30000.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test60000.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test120000.txt", 1, "qzitqhj epfakgvmh aawyfh");
-    cout << "---------------------" << endl;
-    handleFile("sorted/test200.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test500.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test1000.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test8000.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test30000.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test60000.txt", 2, "qzitqhj epfakgvmh aawyfh");
-    handleFile("sorted/test120000.txt", 2, "qzitqhj epfakgvmh aawyfh");
-//    handleFile("same.txt", 2, "hauvguxzbrh aqensal zlicvotpw"); //пример, показывающий, что находит все одинаковые ключи
-    cout << "---------------------" << endl;
-    handleFile("tests/test200.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test500.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test1000.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test8000.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test30000.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test60000.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    handleFile("tests/test120000.txt", 3, "qzitqhj epfakgvmh aawyfh");
-    return 0;
+//    //1-линейные поиск, 2-бинарный в отсортированном, 3-сортировка и бинарный поиск, 4-multimap
+  handleFile("tests/test200.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test500.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test1000.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test8000.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test30000.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test60000.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test120000.txt", 1, "qzitqhj epfakgvmh aawyfh");
+  cout << "---------------------" << endl;
+  handleFile("sorted/test200.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test500.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test1000.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test8000.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test30000.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test60000.txt", 2, "qzitqhj epfakgvmh aawyfh");
+  handleFile("sorted/test120000.txt", 2, "qzitqhj epfakgvmh aawyfh");
+//  handleFile("same.txt", 2, "hauvguxzbrh aqensal zlicvotpw"); //пример, показывающий, что находит все одинаковые ключи
+  cout << "---------------------" << endl;
+  handleFile("tests/test200.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test500.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test1000.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test8000.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test30000.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test60000.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test120000.txt", 3, "qzitqhj epfakgvmh aawyfh");
+  cout << "---------------------" << endl;
+//  handleFile("same.txt", 4, "hauvguxzbrh aqensal zlicvotpw"); //пример, показывающий, что находит все одинаковые ключи
+  handleFile("tests/test200.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test500.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test1000.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test8000.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test30000.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test60000.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  handleFile("tests/test120000.txt", 4, "qzitqhj epfakgvmh aawyfh");
+  return 0;
 
 }
